@@ -1,0 +1,24 @@
+#!/bin/sh
+
+[Unit]
+Description=Minecraft Server: %i
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/minecraft/%i
+
+User=minecraft
+Group=minecraft
+
+#Restart=always
+ExecStartPre=/opt/minecraft/%i/update_server.sh
+ExecStart=/usr/bin/screen -DmS mc-%i /usr/bin/java -Xmx4G -jar server.jar gui
+
+ExecStop=/usr/bin/screen -p 0 -S mc-%i -X eval 'stuff "say Shutown request approved. Server is shutting down in 15 seconds..."\015'
+ExecStop=/bin/sleep 15
+ExecStop=/usr/bin/screen -p 0 -S mc-%i -X eval 'stuff "save-all"\015'
+ExecStop=/usr/bin/screen -p 0 -S mc-%i -X eval 'stuff "stop"\015'
+
+[Install]
+WantedBy=multi-user.target
