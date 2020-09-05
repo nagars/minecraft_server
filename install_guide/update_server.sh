@@ -10,10 +10,10 @@ then
     echo 0 > current_ver.txt
 fi
 
-if [ ! -d backups ]
-then
-    mkdir backups
-fi
+#if [ ! -d backups ]
+#then
+#    mkdir backups
+#fi
 
 # Read the current version of the local server
 CURRENT_VER=$(cat current_ver.txt)
@@ -48,8 +48,8 @@ then
     echo Latest download URL: $DOWNLOAD_URL
     
     # Make a backup copy of the current server.jar
-    echo Backing up the current server.jar to backups/server_$CURRENT_VER.jar
-    mv server.jar backups/server_$CURRENT_VER.jar
+#    echo Backing up the current server.jar to backups/server_$CURRENT_VER.jar
+#    mv server.jar backups/server_$CURRENT_VER.jar
 
     # Run the temp script and download the latest server.jar
     # Let the wget run without the quiet mode on to show its progress in the terminal

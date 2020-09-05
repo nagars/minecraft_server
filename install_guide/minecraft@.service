@@ -3,6 +3,7 @@
 [Unit]
 Description=Minecraft Server: %i
 After=network.target
+After=/bin/sleep 5
 
 [Service]
 Type=simple
@@ -12,8 +13,9 @@ User=minecraft
 Group=minecraft
 
 #Restart=always
+ExecStartPre=/opt/minecraft/%i/backup.sh
 ExecStartPre=/opt/minecraft/%i/update_server.sh
-ExecStart=/usr/bin/screen -DmS mc-%i /usr/bin/java -Xmx4G -jar server.jar gui
+ExecStart=/usr/bin/screen -DmS mc-%i /usr/bin/java -Xmx6G -Xms6G -jar server.jar gui
 
 ExecStop=/usr/bin/screen -p 0 -S mc-%i -X eval 'stuff "say Shutown request approved. Server is shutting down in 15 seconds..."\015'
 ExecStop=/bin/sleep 15
