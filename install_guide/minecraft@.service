@@ -1,6 +1,3 @@
-#For reference 
-#https://linuxconfig.org/how-to-setup-minecraft-server-on-ubuntu-18-04-bionic-beaver-linux
-
 [Unit]
 Description=Minecraft Server: %i
 #Waits for network drivers to begin operation
@@ -19,9 +16,9 @@ Restart=on-failure
 RestartSec=60s
 
 #Runs backup script
-ExecStart=/bin/bash /opt/minecraft/%i/backup.sh
+ExecStartPre=/bin/bash /opt/minecraft/%i/backup.sh
 #Runs update script
-ExecStart=/bin/bash /opt/minecraft/%i/update_server.sh
+ExecStartPre=/bin/bash /opt/minecraft/%i/update_server.sh
 #Starts minecraft server
 ExecStart=/usr/bin/screen -DmS mc-%i /usr/bin/java -Xmx6G -Xms6G -jar server.jar gui
 
