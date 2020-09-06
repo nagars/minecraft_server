@@ -30,6 +30,8 @@ sudo useradd -m -r -d /opt/minecraft minecraft
 
 sudo mkdir /opt/minecraft/survival
 
+sudo chown -R minecraft /opt/minecraft
+
 /*
 Download the server and place it here
 Run it using the command java -Xmx1024M -Xms1024M -jar (FILE_NAME).jar nogui
@@ -41,8 +43,6 @@ First time you run, it will fail. Access eula.txt and set eula to true:
 vi eula.txt
 */
 
-sudo chown -R minecraft /opt/minecraft
-
 4, Create a script to run the server
 
 sudo vi /etc/systemd/system/minecraft@.service 
@@ -52,7 +52,7 @@ sudo vi /etc/systemd/system/minecraft@.service
 /********************************/
 
 /*
--Xmx2G reserves 2 Gb ram. Increase if needbe
+(-Xmx2G -Xms2G) reserves 2 Gb ram. Increase if needbe
 */
 
 5, Start and check the server using script
@@ -110,11 +110,13 @@ port number can be set in the server.properties file
 
 /************FOR BACKUP*********/
 
-1, Install requirements for mcrcon
+1, Copy the backup.sh file to your server direcctories
 
-sudo apt update
-sudo apt install git build-essential
+2, In the directory for each server, type below to make the script executable
 
+chmod +x backup.sh
+
+ 
 /***********AUTO UPDATE***********/
 
 1, Install the JSON parser jq

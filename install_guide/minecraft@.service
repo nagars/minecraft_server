@@ -1,13 +1,16 @@
-#!/bin/sh
+#For reference 
+#https://linuxconfig.org/how-to-setup-minecraft-server-on-ubuntu-18-04-bionic-beaver-linux
 
 [Unit]
 Description=Minecraft Server: %i
+#Waits for network drivers to begin operation
 Wants=network-online.target
 After=network.target network-online.target
 
 [Service]
 WorkingDirectory=/opt/minecraft/%i
-Type=simple
+#Ensures Each command is triggered in sequential order. Next command does not start before previous one is finished
+Type=oneshot
 
 User=minecraft
 Group=minecraft
@@ -15,10 +18,14 @@ Group=minecraft
 Restart=on-failure
 RestartSec=60s
 
-ExecStartPre=/bin/bash /opt/minecraft/%i/backup.sh
-#ExecStartPre=/bin/bash /opt/minecraft/%i/update_server.sh
+#Runs backup script
+ExecStart=/bin/bash /opt/minecraft/%i/backup.sh
+#Runs update script
+ExecStart=/bin/bash /opt/minecraft/%i/update_server.sh
+#Starts minecraft server
 ExecStart=/usr/bin/screen -DmS mc-%i /usr/bin/java -Xmx6G -Xms6G -jar server.jar gui
 
+#Triggers shutdown of server
 ExecStop=/usr/bin/screen -p 0 -S mc-%i -X eval 'stuff "say Shutown request approved. Server is shutting down in 15 seconds..."\015'
 ExecStop=/bin/sleep 15
 ExecStop=/usr/bin/screen -p 0 -S mc-%i -X eval 'stuff "save-all"\015'

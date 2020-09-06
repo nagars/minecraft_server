@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 #Reference https://gitlab.com/peaz/minecraft_server_update_script/blob/master/update_server.sh
 # https://www.atpeaz.com/using-a-script-to-update-the-minecraft-server-jar/
@@ -55,12 +55,6 @@ then
     # Let the wget run without the quiet mode on to show its progress in the terminal
     echo "### Downloading $VER version server.jar now! ###"
     wget $DOWNLOAD_URL
-
-    #EDITED BY SHAWN
-    # Move the server to the correct directory for both servers
-    #mv server.jar /opt/minecraft/survival
-    #mv server.jar /opt/minecraft/creative
-    ####
 
     # update the current_ver.txt to the latest release version number 
     echo $VER > current_ver.txt
