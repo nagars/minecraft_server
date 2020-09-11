@@ -46,7 +46,12 @@ then
     # Query and get the latest release server.jar download URL
     DOWNLOAD_URL=$(eval $DOWNLOAD_JQ)
     echo Latest download URL: $DOWNLOAD_URL
-    
+ 
+
+    # Delete current server version
+    echo "### Deleting obsolete server version ###"
+    rm "server.jar"
+
     # Make a backup copy of the current server.jar
 #    echo Backing up the current server.jar to backups/server_$CURRENT_VER.jar
 #    mv server.jar backups/server_$CURRENT_VER.jar
