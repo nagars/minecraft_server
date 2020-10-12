@@ -108,9 +108,10 @@ port number can be set in the server.properties file
 */
 
 
-/************FOR BACKUP*********/
+/************FOR BOOT BACKUP*********/
+If you want a backup to be created every boot of the server
 
-1, Copy the backup.sh file to your server direcctories
+1, Copy the backup.sh file to your server directories
 
 2, In the directory for each server, type below to make the script executable
 
@@ -130,3 +131,16 @@ sudo apt-get install jq
 chmod +x update_server.sh
 
 /*****************************/
+
+/**********FOR UPDATE BACKUP***********/
+If you would like a new backup to be created everytime an update occurs
+
+1. Copy update_backup.sh to your server directories
+
+2, In the directory for each server, type below to make the script executable
+
+chmod +x backup.sh
+
+/****************************************/
+
+To disable backups / auto update, please comment out the respective lines in the minecraft@.Service script

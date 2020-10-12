@@ -10,9 +10,9 @@ then
     echo 0 > current_ver.txt
 fi
 
-#if [ ! -d backups ]
+#if [ ! -d update_backups ]
 #then
-#    mkdir backups
+#    mkdir update_backups
 #fi
 
 # Read the current version of the local server
@@ -26,8 +26,21 @@ wget -q https://launchermeta.mojang.com/mc/game/version_manifest.json
 VER=$(jq -r '.latest.release' version_manifest.json)
 echo Latest Version: $VER
 
-if [ $CURRENT_VER != $VER ]
+echo Running script to create a new update backup
+    #Path to server folder directory
+    server_path=$( cd "$( dirname "${BASH_SOURCE[0]}" )" ; pwd -P)
+    bash $server_path/update_backup.sh
+
+
+if [ $CURRENT_VER >= $VER ] 
 then
+   
+    echo Running script to create a new update backup
+    #Path to server folder directory
+    server_path=$( cd "$( dirname "${BASH_SOURCE[0]}" )" ; pwd -P)
+    bash {$server_path}/update_backup.sh
+
+
     # Create the jq command to extract the <latest_release_version>.json url
     MANIFEST_JQ=$(echo "jq -r '.versions[] | select(.id == \"$VER\") | .url' version_manifest.json")
     echo $VER.json - jq command: $MANIFEST_JQ
@@ -47,14 +60,13 @@ then
     DOWNLOAD_URL=$(eval $DOWNLOAD_JQ)
     echo Latest download URL: $DOWNLOAD_URL
  
-
     # Delete current server version
     echo "### Deleting obsolete server version ###"
     rm "server.jar"
 
     # Make a backup copy of the current server.jar
-#    echo Backing up the current server.jar to backups/server_$CURRENT_VER.jar
-#    mv server.jar backups/server_$CURRENT_VER.jar
+    #echo Backing up the current server.jar to backups/server_$CURRENT_VER.jar
+    #mv server.jar update_backups/server_$CURRENT_VER.jar
 
     # Run the temp script and download the latest server.jar
     # Let the wget run without the quiet mode on to show its progress in the terminal

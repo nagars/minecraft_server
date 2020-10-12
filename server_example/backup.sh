@@ -13,13 +13,13 @@ parent_path=$(cd ".." ; pwd -P)
 cd ${parent_path}
 
 #Checks if the backup folder has been made. If not, it makes it.
-if [ ! -d server_backup ]
+if [ ! -d boot_server_backup ]
 then
-	mkdir server_backup
+	mkdir boot_server_backup
 fi
 
 #Generates the server backup path
-backup_path=$(cd "${parent_path}/server_backup"; pwd -P);
+backup_path=$(cd "${parent_path}/boot_server_backup"; pwd -P);
 
 #Enters backup folder
 cd ${backup_path}
