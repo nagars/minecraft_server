@@ -23,7 +23,7 @@ I have included references to sites I used at the end. Cheers!
 
 
 ## Introduction
-I setup 2 servers on my laptop. One is a Survival server and the other a creative one designed to handle up to 15 players each. My servers are designed to make a backup upon bootup of the laptop. This backup happens every bootup regardless of potential updates. I wanted to protect my world from corruption in case the laptop failed for any reason.
+This project was made post update 1.16 of minecraft. I setup 2 servers on my laptop. One is a Survival server and the other a creative one designed to handle up to 15 players each. My servers are designed to make a backup upon bootup of the laptop. This backup happens every bootup regardless of potential updates. I wanted to protect my world from corruption in case the laptop failed for any reason.
 
 Afterwards, they query minecraft's website to check for any updates. If an update is found, they create a backup and install the update automatically. This backup is done on the off chance that my world gets corrupted during the transition from an older version of minecraft to the latest. Once complete, the servers starts up.
 
@@ -196,5 +196,7 @@ I am including various repositories, blogs and websites I found very helpful in 
 
 ## Future Scope
 Many will point out that all this can be done by a single script. To reiterate, the point of this exercise was for me to learn and understand. It is labourious by design. That being said, the next step for me at least is to write a bash script to do all this. I am not sure when I will find time between work and other responsibilities but I hope to have it done within a month. Let's see.
+
+Another avenue I am looking at is using port forwarding to have friends access my server through the internet. Still, no concrete plans there.
 
 Thank you so much for checking this out. Any feedback or constructive criticism would be very much appreciated. Thanks!
