@@ -26,10 +26,10 @@ wget -q https://launchermeta.mojang.com/mc/game/version_manifest.json
 VER=$(jq -r '.latest.release' version_manifest.json)
 echo Latest Version: $VER
 
-echo Running script to create a new update backup
+#echo Running script to create a new update backup
     #Path to server folder directory
-    server_path=$( cd "$( dirname "${BASH_SOURCE[0]}" )" ; pwd -P)
-    bash $server_path/update_backup.sh
+#    server_path=$( cd "$( dirname "${BASH_SOURCE[0]}" )" ; pwd -P)
+#    bash $server_path/update_backup.sh
 
 
 if [ $CURRENT_VER >= $VER ] 
