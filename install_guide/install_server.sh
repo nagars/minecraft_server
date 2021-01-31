@@ -3,18 +3,52 @@
 #sets flag to exit upon failure of any command
 set -e
 
+while getopts 'v:h:' option
+do
+	case $option in
+		(h)
+			FLAG='h'
+			shift
+			;;
+		(v)
+			FLAG='v'
+			shift
+			;;
+		(*)
+			echo "Error: Invalid Option Provided\n"
+			exit 0
+			;;
+	esac
+done
+
+if [ "$FLAG" = "h" ]
+then 
+	echo "Minecraft Server Installation Script"
+	echo -e "Usage: ./install_server.sh [Flags] [Server Name] [Download Link]\n"
+	
+	echo "[Flags]:"
+	echo "          -h: Help"
+	echo -e "              Prints help information regarding usage of this script\n"
+	echo "          -v: Verbose"
+	echo -e "              Prints all command messages to terminal\n"
+
+	echo -e "[Server Name]: The name you wish to give to the server you intend to install\n"
+	echo -e "[Download Link]: The download link of the java server found on minecraft.net [https://www.minecraft.net/en-us/download/server/]\n"
+	exit 1
+fi
+
 #Set a variable with the name you want and download link provided 
 NAME=${1?Error: No Server Name Provided}
 DLINK=${2?Error: No Server Download Link Provided}
 SERVER_DIR=/opt/minecraft/$NAME
-SUPPRESS_OUTPUT=/dev/null
+#SUPPRESS_OUTPUT=/dev/null
+SUPPRESS_OUTPUT=/dev/stdout 
 
 echo -e "Beginning Installation"
-echo -e "Server Name: $NAME"
-echo -ne "Status: 0%[                                                  ]  \r"
+echo -e "Server Name: $NAME\n"
+echo -ne "Status: 0%[                                                  	]  \r"
 
 #Install Libraries required
-#echo -e "\e[1;32m Installing required libraries \e[0m"
 if ! apt update 					-y 	&> $SUPPRESS_OUTPUT				
 then
 	echo -ne "Error: Unable to Download update list. Did you forget sudo? \n"
@@ -29,7 +63,7 @@ then
 fi
 echo -ne "Status: 10%[====>                                            	]  \r"
 
-if ! apt install wget screen default-jdk nmap 	-y	&> $SUPPRESS_OUTPUT	
+if ! apt install wget screen default-jdk nmap 		-y	&> $SUPPRESS_OUTPUT	
 then
 	echo -ne "Error: Unable to install screen & nmap \n"
 	exit 0
@@ -50,7 +84,6 @@ then
 fi
 echo -ne "Status: 25%[=========>                                        ]  \r"
 
-#echo -e "\e[1;32m Creating minecraft user account and server folder \e[0m"
 #Checks if the minecraft user account does not already exist
 if [ ! -d /opt/minecraft ]
 then 
@@ -74,12 +107,10 @@ mkdir $SERVER_DIR
 
 #Gives minecraft full ownership of the minecraft folder
 chown -R minecraft /opt/minecraft
-#echo -e "\e[1;32m Finished \e[0m \n"
 echo -ne "Status: 30%[===================>                              ]  \r"
 
-#echo -e "\e[1;32m Downloading server files \e[0m"
 #Download the mineraft server
-if ! wget $DLINK -P $SERVER_DIR		&> $SUPPRESS_OUTPUT
+if ! wget $DLINK -P $SERVER_DIR					&> $SUPPRESS_OUTPUT
 then
 	echo -ne "Unable to download the server file. Check the link maybe? \n"
 	exit 0
@@ -87,10 +118,8 @@ fi
 
 #Gives minecraft full ownership of the server folder
 chown -R minecraft $SERVER_DIR
-#echo -e "\e[1;32m Finished \e[0m \n"
 echo -ne "Status: 60%[=============================>                    ]  \r"
 
-#echo -e "\e[1;32m Initial server run [Standby][Ignore Failure Messages] \e[0m"
 #Stores current directory
 CURR_DIR=$(pwd)
 
@@ -105,7 +134,7 @@ java -Xmx1024M -Xms1024M -jar $SERVER_DIR/server.jar nogui	&> $SUPPRESS_OUTPUT
 
 #Enable exit upon error
 set -e
-#echo -e "\e[1;32m Finished \e[0m \n"
+
 echo -ne "Status: 90%[============================================>     ]  \r"
 
 #Edit the eula.txt file
@@ -114,7 +143,6 @@ sed -i 's/false/true/g' $SERVER_DIR/eula.txt
 #Return to install folder
 cd $CURR_DIR
 
-#echo -e "\e[1;32m Copy essential scripts to the server folder \e[0"
 #copy the systemd file for automated startup/backup of the server on bootup
 cp minecraft@.service /etc/systemd/system
 
@@ -133,7 +161,6 @@ cp backup.sh $SERVER_DIR
 
 #Make the backup script executable
 chmod +x backup.sh
-#echo -e "\e[1;32m Finished \e[0m \n"
 
 #Enable the systemd script to run on bootup
 systemctl enable minecraft@$NAME
