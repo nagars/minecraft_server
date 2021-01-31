@@ -15,16 +15,39 @@ echo -ne "Status: 0%[                                                  ]  \r"
 
 #Install Libraries required
 #echo -e "\e[1;32m Installing required libraries \e[0m"
-apt update 					-y 	&> $SUPPRESS_OUTPUT				
+if ! apt update 					-y 	&> $SUPPRESS_OUTPUT				
+then
+	echo -ne "Error: Unable to Download update list. Did you forget sudo? \n"
+	exit 0
+fi
 echo -ne "Status: 5%[=>                                                 ]  \r"
-apt-get install openjdk-8-jdk 			-y	&> $SUPPRESS_OUTPUT	
+
+if ! apt-get install openjdk-8-jdk 			-y	&> $SUPPRESS_OUTPUT	
+then
+	echo -ne "Error: Unable to install openjdk \n"
+	exit 0
+fi
 echo -ne "Status: 10%[====>                                            	]  \r"
-apt install wget screen default-jdk nmap 	-y	&> $SUPPRESS_OUTPUT	
+
+if ! apt install wget screen default-jdk nmap 	-y	&> $SUPPRESS_OUTPUT	
+then
+	echo -ne "Error: Unable to install screen & nmap \n"
+	exit 0
+fi
 echo -ne "Status: 15%[=======>                                        	]  \r"
-apt-get install jq 				-y	&> $SUPPRESS_OUTPUT	
+
+if ! apt-get install jq 				-y	&> $SUPPRESS_OUTPUT	
+then
+	echo -ne "Error: Unable to intall jq \n"
+	exit 0
+fi
 echo -ne "Status: 20%[=========>                                        ]  \r"
-apt-get install wget 				-y	&> $SUPPRESS_OUTPUT	
-#echo -e "\e[1;32m Finished \e[0m \n"
+
+if ! apt-get install wget 				-y	&> $SUPPRESS_OUTPUT	
+then
+	echo -ne "Error: Unable to install wget \n"
+	exit 0
+fi
 echo -ne "Status: 25%[=========>                                        ]  \r"
 
 #echo -e "\e[1;32m Creating minecraft user account and server folder \e[0m"
@@ -32,7 +55,11 @@ echo -ne "Status: 25%[=========>                                        ]  \r"
 if [ ! -d /opt/minecraft ]
 then 
 	#Create the minecraft user
-	useradd -m -r -d /opt/minecraft minecraft
+	if ! useradd -m -r -d /opt/minecraft minecraft
+	then
+		echo -ne "Error: Unable to create new minecraft user \n"
+		exit 0
+	fi
 fi
 
 #Checks if the server folder with the same server name exists
@@ -52,7 +79,11 @@ echo -ne "Status: 30%[===================>                              ]  \r"
 
 #echo -e "\e[1;32m Downloading server files \e[0m"
 #Download the mineraft server
-wget $DLINK -P $SERVER_DIR		&> $SUPPRESS_OUTPUT
+if ! wget $DLINK -P $SERVER_DIR		&> $SUPPRESS_OUTPUT
+then
+	echo -ne "Unable to download the server file. Check the link maybe? \n"
+	exit 0
+fi
 
 #Gives minecraft full ownership of the server folder
 chown -R minecraft $SERVER_DIR
