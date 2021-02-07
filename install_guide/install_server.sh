@@ -37,47 +37,52 @@ then
 	exit 1
 fi
 
-#Set a variable with the name you want and download link provided 
+#Set a variable with the server name you want and download link on minecrafts website
 NAME=${1?Error: No Server Name Provided}
 DLINK=${2?Error: No Server Download Link Provided}
 SERVER_DIR=/opt/minecraft/$NAME
-#SUPPRESS_OUTPUT=/dev/null
-SUPPRESS_OUTPUT=/dev/stdout 
+
+if [ "$FLAG" = "v" ]
+then
+	OUTPUT=/dev/stdout 
+else
+	OUTPUT=/dev/null
+fi
 
 echo -e "Beginning Installation"
 echo -e "Server Name: $NAME\n"
 echo -ne "Status: 0%[                                                  	]  \r"
 
 #Install Libraries required
-if ! apt update 					-y 	&> $SUPPRESS_OUTPUT				
+if ! apt update 					-y 	&> $OUTPUT				
 then
 	echo -ne "Error: Unable to Download update list. Did you forget sudo? \n"
 	exit 0
 fi
 echo -ne "Status: 5%[=>                                                 ]  \r"
 
-if ! apt-get install openjdk-8-jdk 			-y	&> $SUPPRESS_OUTPUT	
+if ! apt-get install openjdk-8-jdk 			-y	&> $OUTPUT	
 then
 	echo -ne "Error: Unable to install openjdk \n"
 	exit 0
 fi
 echo -ne "Status: 10%[====>                                            	]  \r"
 
-if ! apt install wget screen default-jdk nmap 		-y	&> $SUPPRESS_OUTPUT	
+if ! apt install wget screen default-jdk nmap 		-y	&> $OUTPUT	
 then
 	echo -ne "Error: Unable to install screen & nmap \n"
 	exit 0
 fi
 echo -ne "Status: 15%[=======>                                        	]  \r"
 
-if ! apt-get install jq 				-y	&> $SUPPRESS_OUTPUT	
+if ! apt-get install jq 				-y	&> $OUTPUT	
 then
 	echo -ne "Error: Unable to intall jq \n"
 	exit 0
 fi
 echo -ne "Status: 20%[=========>                                        ]  \r"
 
-if ! apt-get install wget 				-y	&> $SUPPRESS_OUTPUT	
+if ! apt-get install wget 				-y	&> $OUTPUT	
 then
 	echo -ne "Error: Unable to install wget \n"
 	exit 0
@@ -110,7 +115,7 @@ chown -R minecraft /opt/minecraft
 echo -ne "Status: 30%[===================>                              ]  \r"
 
 #Download the mineraft server
-if ! wget $DLINK -P $SERVER_DIR					&> $SUPPRESS_OUTPUT
+if ! wget $DLINK -P $SERVER_DIR					&> $OUTPUT
 then
 	echo -ne "Unable to download the server file. Check the link maybe? \n"
 	exit 0
@@ -130,7 +135,7 @@ cd $SERVER_DIR
 set +e 
 
 #Run the server for the first time
-java -Xmx1024M -Xms1024M -jar $SERVER_DIR/server.jar nogui	&> $SUPPRESS_OUTPUT	
+java -Xmx1024M -Xms1024M -jar $SERVER_DIR/server.jar nogui	&> $OUTPUT	
 
 #Enable exit upon error
 set -e
@@ -140,6 +145,9 @@ echo -ne "Status: 90%[============================================>     ]  \r"
 #Edit the eula.txt file
 sed -i 's/false/true/g' $SERVER_DIR/eula.txt
 
+#Make a folder to house the scripts
+mkdir scripts
+
 #Return to install folder
 cd $CURR_DIR
 
@@ -147,23 +155,24 @@ cd $CURR_DIR
 cp minecraft@.service /etc/systemd/system
 
 #Copy the server update script to the server folder
-cp update_server.sh $SERVER_DIR
+cp update_server.sh $SERVER_DIR/scripts
 
 #Copy the update backup script to the server folder
-cp update_backup.sh $SERVER_DIR
+cp update_backup.sh $SERVER_DIR/scripts
 
 #Make the scripts executable
-chmod +x $SERVER_DIR/update_server.sh
-chmod +x $SERVER_DIR/update_backup.sh
+chmod +x $SERVER_DIR/scripts/update_server.sh
+chmod +x $SERVER_DIR/scripts/update_backup.sh
 
 #Copy the boot backup script to the server folder
-cp backup.sh $SERVER_DIR
+cp backup.sh $SERVER_DIR/scripts
 
 #Make the backup script executable
-chmod +x backup.sh
+chmod +x $SERVER_DIR/scripts/backup.sh
 
 #Enable the systemd script to run on bootup
 systemctl enable minecraft@$NAME
+
 echo -ne "Status: 100%[==================================================]  \r\n"
 
 echo -e "Installation Complete. Enjoy your server!"

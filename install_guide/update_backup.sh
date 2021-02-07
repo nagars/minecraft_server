@@ -1,10 +1,13 @@
 #!/bin/bash
+    
+#Path to server script folder directory
+server_script_path=$( cd "$( dirname "${BASH_SOURCE[0]}" )" ; pwd -P)
 
 #Path to server folder directory
-server_path=$( cd "$( dirname "${BASH_SOURCE[0]}" )" ; pwd -P)
+server_path=$(cd "$server_script_path"; cd ".."; pwd -P)
 
-#Name of server folder
-folder_name="${server_path##*/}"
+#Name of server script folder
+server_folder_name="${server_path##*/}"
 
 #Extracts parent path (Before main server folder)
 parent_path=$(cd ".." ; pwd -P) 
@@ -25,16 +28,16 @@ backup_path=$(cd "${parent_path}/update_server_backups"; pwd -P);
 cd ${backup_path}
 
 #Check if the server folder for backups exists. If not, it makes it.
-if [ ! -d ${folder_name} ]
+if [ ! -d ${server_folder_name} ]
 then
-	mkdir ${folder_name}
+	mkdir ${server_folder_name}
 fi
 
 #Enters server folder in backups directory
-cd ${folder_name}
+cd ${server_folder_name}
 
 #Deletes older backup
-#find "${backup_path}/${folder_name}/" -type f -name '*.gz' -delete
+#find "${backup_path}/${server_folder_name}/" -type f -name '*.gz' -delete
 
 #Creates new backup
-tar -cvpzf "${folder_name}"-$(date +%F-%H-%M).tar.gz ${server_path}
+tar -cvpzf "${server_folder_name}"-$(date +%F-%H-%M).tar.gz ${server_path}

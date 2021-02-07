@@ -3,17 +3,14 @@
 #Reference https://gitlab.com/peaz/minecraft_server_update_script/blob/master/update_server.sh
 # https://www.atpeaz.com/using-a-script-to-update-the-minecraft-server-jar/
 
+#Move to server folder
+cd ".."
 
 # Initiliaze and create a current_ver.txt file and backups directory if it does not exist
 if [ ! -f current_ver.txt ]
 then
     echo 0 > current_ver.txt
 fi
-
-#if [ ! -d update_backups ]
-#then
-#    mkdir update_backups
-#fi
 
 # Read the current version of the local server
 CURRENT_VER=$(cat current_ver.txt)
@@ -26,20 +23,15 @@ wget -q https://launchermeta.mojang.com/mc/game/version_manifest.json
 VER=$(jq -r '.latest.release' version_manifest.json)
 echo Latest Version: $VER
 
-#echo Running script to create a new update backup
-    #Path to server folder directory
-#    server_path=$( cd "$( dirname "${BASH_SOURCE[0]}" )" ; pwd -P)
-#    bash $server_path/update_backup.sh
-
-
-if [ $CURRENT_VER >= $VER ] 
+if [ "$CURRENT_VER" >= "$VER" ] 
 then
    
     echo Running script to create a new update backup
-    #Path to server folder directory
-    server_path=$( cd "$( dirname "${BASH_SOURCE[0]}" )" ; pwd -P)
-    bash {$server_path}/update_backup.sh
+    #Path to server script folder directory
+    server_script_path=$( cd "$( dirname "${BASH_SOURCE[0]}" )" ; pwd -P)
 
+    #Calls back up script fro updates
+    bash {$server_script_path}/update_backup.sh
 
     # Create the jq command to extract the <latest_release_version>.json url
     MANIFEST_JQ=$(echo "jq -r '.versions[] | select(.id == \"$VER\") | .url' version_manifest.json")
@@ -64,12 +56,7 @@ then
     echo "### Deleting obsolete server version ###"
     rm "server.jar"
 
-    # Make a backup copy of the current server.jar
-    #echo Backing up the current server.jar to backups/server_$CURRENT_VER.jar
-    #mv server.jar update_backups/server_$CURRENT_VER.jar
-
-    # Run the temp script and download the latest server.jar
-    # Let the wget run without the quiet mode on to show its progress in the terminal
+    #Download the latest server
     echo "### Downloading $VER version server.jar now! ###"
     wget $DOWNLOAD_URL
 
