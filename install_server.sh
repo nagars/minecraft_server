@@ -126,7 +126,7 @@ chown -R minecraft $SERVER_DIR
 echo -ne "Status: 60%[=============================>                    ]  \r"
 
 #Stores current directory
-CURR_DIR=$(pwd)
+SCRIPT_DIR=$(cd "scripts"; pwd -P)
 
 #Moves to server directory
 cd $SERVER_DIR
@@ -148,8 +148,8 @@ sed -i 's/false/true/g' $SERVER_DIR/eula.txt
 #Make a folder to house the scripts
 mkdir scripts
 
-#Return to install folder
-cd $CURR_DIR
+#Return to install script folder
+cd $SCRIPT_DIR
 
 #copy the systemd file for automated startup/backup of the server on bootup
 cp minecraft@.service /etc/systemd/system

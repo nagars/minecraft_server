@@ -30,7 +30,7 @@ then
     #Path to server script folder directory
     server_script_path=$( cd "$( dirname "${BASH_SOURCE[0]}" )" ; pwd -P)
 
-    #Calls back up script fro updates
+    #Calls back up script for updates
     bash {$server_script_path}/update_backup.sh
 
     # Create the jq command to extract the <latest_release_version>.json url
