@@ -3,7 +3,7 @@
 #sets flag to exit upon failure of any command
 set -e
 
-while getopts 'v:h:' option
+while getopts 'v:h' option
 do
 	case $option in
 		(h)
@@ -15,7 +15,7 @@ do
 			shift
 			;;
 		(*)
-			echo "Error: Invalid Option Provided\n"
+			echo -e "Error: Invalid Option Provided\n"
 			exit 0
 			;;
 	esac

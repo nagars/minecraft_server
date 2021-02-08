@@ -1,5 +1,32 @@
 #!/bin/bash
 
+while getopts 'uh' option
+do
+	case $option in
+		(h)
+			FLAG='h'
+			shift
+			;;
+		(u)
+			FLAG='u'
+			shift
+			;;
+		(*)
+			echo "Error: Invalid Option Provided"
+			exit 0
+			;;
+	esac
+done
+
+#Creates a boot_server_backup folder by default
+BACKUP_FOLDER_NAME="boot_server_backup"
+
+#Checks if -u flag was given. Creates an update_server_backup folder instead
+if [ "$FLAG" = "u" ]
+then
+	BACKUP_FOLDER_NAME="update_server_backup"
+fi
+
 #Path to server script folder directory
 server_script_path=$( cd "$( dirname "${BASH_SOURCE[0]}" )" ; pwd -P)
 
@@ -16,13 +43,13 @@ parent_path=$(cd "${server_path}"; cd ".." ;  pwd -P)
 cd ${parent_path}
 
 #Checks if the backup folder has been made. If not, it makes it.
-if [ ! -d boot_server_backup ]
+if [ ! -d ${BACKUP_FOLDER_NAME} ]
 then
-	mkdir boot_server_backup
+	mkdir ${BACKUP_FOLDER_NAME}
 fi
 
 #Generates the server backup path
-backup_path=$(cd "${parent_path}/boot_server_backup"; pwd -P);
+backup_path=$(cd "${parent_path}/${BACKUP_FOLDER_NAME}"; pwd -P);
 
 #Enters backup folder
 cd ${backup_path}

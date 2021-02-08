@@ -30,14 +30,14 @@ then
     #Path to server script folder directory
     server_script_path=$( cd "$( dirname "${BASH_SOURCE[0]}" )" ; pwd -P)
 
-    #Calls back up script for updates
-    bash {$server_script_path}/update_backup.sh
+    #Calls back up script with updates flag
+    bash {$server_script_path}/backup.sh -u
 
     # Create the jq command to extract the <latest_release_version>.json url
     MANIFEST_JQ=$(echo "jq -r '.versions[] | select(.id == \"$VER\") | .url' version_manifest.json")
     echo $VER.json - jq command: $MANIFEST_JQ
 
-    # Query the <latest_release_version>.json
+    # Query the <latest_release_version>.json url
     MANIFEST_URL=$(eval $MANIFEST_JQ)
     echo $VER.json - URL:$MANIFEST_URL
     
