@@ -1,5 +1,6 @@
 #!/bin/bash
 
+#Checks for options provided
 while getopts 'uh' option
 do
 	case $option in
@@ -18,6 +19,20 @@ do
 	esac
 done
 
+if [ "$FLAG" = "h" ]
+then
+	echo "Minecraft Server Backup Script"
+	echo "Usage: ./backup.sh [Flags]"
+
+	echo "[Flags]:"
+	echo "		-h: Help"
+	echo "		Prints help informatino regarding usage of this script"
+	echo " 		-u: Update"
+	echo "		Generates an alternate backup directory named "update_server_backup""
+	
+	exit 1
+fi
+
 #Creates a boot_server_backup folder by default
 BACKUP_FOLDER_NAME="boot_server_backup"
 
@@ -28,19 +43,19 @@ then
 fi
 
 #Path to server script folder directory
-server_script_path=$( cd "$( dirname "${BASH_SOURCE[0]}" )" ; pwd -P)
+SERVER_SCRIPT_PATH=$( cd "$( dirname "${BASH_SOURCE[0]}" )" ; pwd -P)
 
 #Path to server folder directory
-server_path=$(cd "$server_script_path"; cd ".."; pwd -P)
+SERVER_PATH=$(cd "$SERVER_SCRIPT_PATH"; cd ".."; pwd -P)
 
 #Name of server folder
-server_folder_name="${server_path##*/}" 
+SERVER_FOLDER_NAME="${SERVER_PATH##*/}" 
 
 #Extracts parent path (Before main server folder)
-parent_path=$(cd "${server_path}"; cd ".." ;  pwd -P) 
+PARENT_PATH=$(cd "${SERVER_PATH}"; cd ".." ;  pwd -P) 
 
 #Return to parent folder
-cd ${parent_path}
+cd ${PARENT_PATH}
 
 #Checks if the backup folder has been made. If not, it makes it.
 if [ ! -d ${BACKUP_FOLDER_NAME} ]
@@ -49,22 +64,22 @@ then
 fi
 
 #Generates the server backup path
-backup_path=$(cd "${parent_path}/${BACKUP_FOLDER_NAME}"; pwd -P);
+BACKUP_PATH=$(cd "${PARENT_PATH}/${BACKUP_FOLDER_NAME}"; pwd -P);
 
 #Enters backup folder
-cd ${backup_path}
+cd ${BACKUP_PATH}
 
 #Check if the server folder for backups exists. If not, it makes it.
-if [ ! -d ${server_folder_name} ]
+if [ ! -d ${SERVER_FOLDER_NAME} ]
 then
-	mkdir ${server_folder_name}
+	mkdir ${SERVER_FOLDER_NAME}
 fi
 
 #Enters server folder in backups directory
-cd ${server_folder_name}
+cd ${SERVER_FOLDER_NAME}
 
 #Deletes older backup
-find "${backup_path}/${server_folder_name}/" -type f -name '*.gz' -delete
+find "${BACKUP_PATH}/${SERVER_FOLDER_NAME}/" -type f -name '*.gz' -delete
 
 #Creates new backup
-tar -cvpzf "${server_folder_name}"-$(date +%F-%H-%M).tar.gz --absolute-names ${server_script_path} > /dev/null
+tar -cvpzf "${SERVER_FOLDER_NAME}"-$(date +%F-%H-%M).tar.gz --absolute-names ${SERVER_SCRIPT_PATH} > /dev/null
