@@ -8,35 +8,33 @@ I have included references to sites I used at the end. Cheers!
 1. Introduction
     1. Coding Concepts Used
     2. Hardware Used
-2. Instructions - Getting started
+2. Installation Script 
     1. Libraries required
-    2. Setting up the server
-    3. Connecting to your server
-    4. Server Properties
-    5. Possible Issues
-3.  Instructions - Automated Features
-    1. Automated Start-up
-    2. Automated Server Backups
-    3. Automated Server Update & Backups
-4. References
-5. Future Scope
+    2. Setting up the server 
+    3. Automation
+3.  systemd script
+4.  Automated Backup Script
+5.  Automated Update Script
+6.  Connecting to your server
+    1. Server Properties
+    2. Possible Issues
+7. References
+8. Future Scope
 
 
 ## Introduction
 This project was made post update 1.16 of minecraft. I setup 2 servers on my laptop. One is a Survival server and the other a creative one designed to handle up to 15 players each. My servers are designed to make a backup upon bootup of the laptop. This backup happens every bootup regardless of potential updates. I wanted to protect my world from corruption in case the laptop failed for any reason.
 
-Afterwards, they query minecraft's website to check for any updates. If an update is found, they create a backup and install the update automatically. This backup is done on the off chance that my world gets corrupted during the transition from an older version of minecraft to the latest. Once complete, the servers starts up.
+Afterwards, they query minecraft's website to check for any updates. If an update is found, they create another backup in a different directory and install the update automatically. This backup is done on the off chance that my world gets corrupted during the transition from an older version of minecraft to the latest. Once complete, the servers starts up.
 
 These features can be considered unnecessary but I implemented them more to learn than anything.
-
-**I cover how to setup the survival server here. The creative server is just a repeat of these instructions.**
 
 ### Coding concepts used
 Don't worry if you have no idea about these. I didn't either. I'll try and explain each bash script and systemd file. 
 
 - bash
     
-    It stands for Bourne Again Shell. Basically it is used to write scripts that can be used to perform various tasks on your computer automatically. We will used to create backup and update scripts
+    It stands for Bourne Again Shell. Basically it is used to write scripts that can be used to perform various tasks on your computer automatically. Shell scripting forms the core of this project
 
 - systemd
 
@@ -44,12 +42,16 @@ Don't worry if you have no idea about these. I didn't either. I'll try and expla
     
 - vi/vim
 
-    vi comes standard with most linux distributions. It's basically a text editor like notepad but which runs on the command line. vim is vi but with a lot more features. Knowing how to use this is actually quite essential to write the text files in terminal.
+    vi comes standard with most linux distributions. It's basically a text editor like notepad but which runs on the command line. vim is vi but with a lot more features. Knowing how to use this is actually quite essential for software development on Linux. A simple cheat sheet of commands can be found [here](https://www.cs.cmu.edu/~15131/f17/topics/vim/vim-cheatsheet.pdf)
     
 - Terminal / Command line
 
     Knowing basic terminal commands is essential here. Traversing directories, creating directories, taking ownership of folders etc. Thankfully there are a lot of online resources like [this](https://www.geeksforgeeks.org/basic-shell-commands-in-linux/).
 
+- json files
+
+    json stands for Javascript Object Notation. It is a popular format to store data structures. It allows for teh storage of a lot of information in a well structured manner to enable ease of access to said information. We will use it to access information on the latest minecraft release versions as well as the url's to download said server versions.
+    
 ### Hardware Used
 I have listed the specs of the laptop used to run the two servers. Mojang already provides a good reference of resources required to run a server [here](https://minecraft.gamepedia.com/Server/Requirements).
 
@@ -57,29 +59,29 @@ I have listed the specs of the laptop used to run the two servers. Mojang alread
 - 16 GB Ram
 - OS: Ubuntu 20.04
 
-## Instructions - Getting Started
-So lets run through how to get your server running for the first time.
+## Installation Script
+The installation script forms the heart of this project. It installs the necessary libraries, copies the update and backup scripts to appropriate folders, downloads the minecraft server, creates a minecraft user account and implements the systmd scripts. Note: I have assumed the server's name is **"survival"** for this readme file.
 
 ### Libraries required
-Open up a terminal window (ctrl + alt + t). Type in the following:
+The following code in the script implements the libraries required to install and run the server and scripts.
 
 ```bash
-sudo apt-get update
-sudo apt upgrade
-sudo apt-get install openjdk-8-jdk
-sudo apt install wget screen default-jdk nmap
-sudo apt-get install jq
+apt-get update
+apt upgrade
+apt-get install openjdk-8-jdk
+apt install wget screen default-jdk nmap
+apt-get install jq
 ```
 So let's explain each line.
-`sudo apt-get update` basically fetches a list of updates to various software and libraries that can be downloaded and installed.
+`apt-get update` basically fetches a list of updates to various software and libraries that can be downloaded and installed.
 
-`sudo apt upgrade` installs said updates.
+`apt upgrade` installs said updates.
 
-`sudo apt-get install openjdk-8-jdk` openjdk is an open source java runtime environment required by the server. This command installs it.
+`apt-get install openjdk-8-jdk` openjdk is an open source java runtime environment required by the server. This command installs it.
 
-`sudo apt install wget screen default-jdk nmap` This will install **screen** which will give us access to the serial console of the server. This will allow us to write commands to the server similar to how we would do it through the in-game chat. **nmap** is a network debug tool that can be used later for debugging.
+`apt install wget screen default-jdk nmap` This will install **screen** which will give us access to the serial console of the server. This will allow us to write commands to the server similar to how we would do it through the in-game chat. **nmap** is a network debug tool that can be used later for debugging.
 
-`sudo apt-get install jq` will install **jq**. To check the latest update version, we will download a json file from Mojang. jq is used to interpret that.
+`apt-get install jq` will install **jq**. To check the latest update version, we will download a json file from Mojang. jq is used to interpret that.
 
 ### Setting up the server
 This involves two main operations. First we will create a separate user account for your servers. Then we will download and run it for the first time.
@@ -87,38 +89,98 @@ This involves two main operations. First we will create a separate user account 
 #### The minecraft user account
 
 ```bash
-sudo useradd -m -r -d /opt/minecraft minecraft
-sudo mkdir /opt/minecraft/survival
-sudo chown -R minecraft /opt/minecraft
+useradd -m -r -d /opt/minecraft minecraft
+mkdir /opt/minecraft/$NAME
+chown -R minecraft /opt/minecraft
 ```
-`sudo useradd -m -r -d /opt/minecraft minecraft` creates a new user account named minecraft. All your servers will come under this account.
+`useradd -m -r -d /opt/minecraft minecraft` creates a new user account named minecraft. All your servers will come under this account.
 
-`sudo mkdir /opt/minecraft/survival` makes a folder named **survival** in the opt/minecraft directory. For each server, you will have to create a new folder here.
+`mkdir /opt/minecraft/$NAME` makes a folder in the opt/minecraft directory with a server name stored in the variable called "NAME" assigned earlier in the script. For each server, a new folder is created here.
 
-`sudo chown -R minecraft /opt/minecraft` gives the minecraft user account ownership of this minecraft folder where all your servers lie.
+`chown -R minecraft /opt/minecraft` gives the minecraft user account ownership of this minecraft folder where all your servers lie.
 
-####  Setting up the server
-You can find the server on your browser from their website [here](https://www.minecraft.net/en-us/download/server). There are two ways to get it to your server folder:
+####  Downloading the server
+This is where things get a little complicated.
 
-| Option 1                 | Option 2              |
-| :----------------------: | :-------------------: |
-| Once downloaded, navigate to your download folder in terminal, then copy it from your download folder to your server folder (/opt/minecraft/survival) using  `cp (FILE_NAME).jar /opt/minecraft/survival` | Alternatively, you can download it directly in to your server folder through the terminal by copying the download link. The command `wget <link> /opt/mineraft/survival` will download the .jar file into your server folder. |
+```bash
+wget -q https://launchermeta.mojang.com/mc/game/version_manifest.json
+VER=$(jq -r '.latest.release' version_manifest.json)
+MANIFEST_JQ=$(echo "jq -r '.versions[] | select(.id == \"$VER\") | .url' version_manifest.json")
+MANIFEST_URL=$(eval $MANIFEST_JQ)
+wget -q $MANIFEST_URL
+DOWNLOAD_JQ=$(echo "jq -r .downloads.server.url $VER.json")
+DOWNLOAD_URL=$(eval $DOWNLOAD_JQ)
+wget $DOWNLOAD_URL -P $SERVER_DIR	
+```
+`wget -q https://launchermeta.mojang.com/mc/game/version_manifest.json` downlaods the version_manifest.json file. This files contains information on various release versions of the minecraft server, including information on the latest release version. 
 
-Dont worry about .jar. It means its just a compressed file.
+`VER=$(jq -r '.latest.release' version_manifest.json)` searches the version_manifest.json file for the element called "release" within a structure called "latest". Effectively it searches for the latest release version and returns it into a variable called "VER".
+
+`MANIFEST_JQ=$(echo "jq -r '.versions[] | select(.id == \"$VER\") | .url' version_manifest.json")` searches for the download url of another .json file continaing information specific to the server version we wish to download. Let's break it down further:
+
+`echo "jq -r '.versions[] ` searches for the structure called "versions". Once found `select(.id == \"$VER\")` searches the "id" element within the "versions" structure. It keeps searching till it find an id matching the "VER" variable value. Remember, we found the latest minecraft version and placed it in the "VER" variable earlier. Finally, `.url' version_manifest.json"` accesses the "url" element within the "id" structure. This is url of the .json file of the latest server we wish to download. 
+
+`MANIFEST_URL=$(eval $MANIFEST_JQ)` executes the command above and places the server .json file download url in the variable "MANIFEST_URL".
+
+`wget -q $MANIFEST_URL` downloads the server .json based on the url extracted.
+
+`DOWNLOAD_JQ=$(echo "jq -r .downloads.server.url $VER.json")` searches the server specific .json file for the element "url" in the "server" structure found within the "downloads" structure. 
+
+`DOWNLOAD_URL=$(eval $DOWNLOAD_JQ)` executes the above command and placed the download url for the server in a variable called "DOWNLOAD_URL".
+
+`wget $DOWNLOAD_URL -P $SERVER_DIR` used the download link to download the server into the directory mentioned in the "SERVER_DIR" variable. We previously set it to the directory we want to install our server in.
+
+With that done, we now have our server file called "server.jar". Dont worry about .jar. It means its just a compressed file.
+
+#### Running the Server for the first time
 
 Next, let's run your server for the first time. **Spoiler alert: It will not run.** 
 
-In your server folder, run `java -Xmx1024M -Xms1024M -jar (FILE_NAME).jar nogui` to run your server. Some points to note:
+```bash
+java -Xmx2048M -Xms2048M -jar $SERVER_DIR/server.jar nogui
+sed -i 's/false/true/g' $SERVER_DIR/eula.txt
+```
 
-- `-Xmx1024M -Xms1024M` specify how much RAM to reserve for the server. In this case, 1GB. I recommend adjusting this according to you hardware resources available.
+`java -Xmx1024M -Xms1024M -jar server.jar nogui` runs your server. Some points to note:
+
+- `-Xmx1024M -Xms1024M` specify how much RAM to reserve for the server. In this case, 1GB. I recommend adjusting this according to you hardware resources available. e.g. 2048 for 2GB.
 
 - `nogui` ensures that the GUI does not run, i.e. no graphical application will run in your screen. 
 
-Anyway, your server fails to start. You will notice in the folder that a eula.txt has been created. **Edit it and set eula to true.** Use `vi eula.txt ` to open the editor and make the adjustments.
+Anyway, your server fails to start. In the folder, a eula.txt has been created. This text file has a line "eula=false".
 
-Try running the server again. It should work fine this time. If you want to see some runtime information, shutdown the server and restart it with the command `java -Xmx1024M -Xms1024M -jar (FILE_NAME).jar gui`. Notice `nogui` is missing. A screen with information such as memory used etc. regarding your new server session will come up. 
+`sed -i 's/false/true/g' $SERVER_DIR/eula.txt` edits the eula.txt and sets "eula=true". This indicates that you accept the terms and conditions for using this server.
 
-**Congratulations! Your server is running!**
+Next time we run the server, it will work fine.
+
+**Congratulations! Your server is installed!**
+
+### Automation
+Here we move the systmd file to the appropriate folder and enable it to be called on bootup of the laptop. We move the backup and update scripts to a folder called "Scripts" in the server folder.
+
+```bash
+cp minecraft@.service /etc/systemd/system
+cp update_server.sh $SERVER_DIR/scripts
+chmod +x $SERVER_DIR/scripts/update_server.sh
+cp backup.sh $SERVER_DIR/scripts
+chmod +x $SERVER_DIR/scripts/backup.sh
+systemctl enable minecraft@$NAME
+```
+`cp minecraft@.service /etc/systemd/system` copies the systmd file to the system directory.
+
+`systemctl enable minecraft@$NAME` will enable this script to be run on bootup for the server whose name is stored in the variable "NAME" assigned previously in the script.
+
+`cp update_server.sh $SERVER_DIR/scripts` Copies the update_server script to the scripts folder in the server directory.
+
+`cp backup.sh $SERVER_DIR/scripts` Copies the backup script to the scripts folder in the server directory.
+
+`chmod +x $SERVER_DIR/scripts/update_server.sh` Tells linux that update_server is a script that can be executes like a program.
+
+`chmod +x $SERVER_DIR/scripts/backup.sh` Tells linux that backup is a script that can be executes like a program.
+
+### systemd script
+### Automated Backup Script
+### Automated Update Script
 
 ### Connecting to your server
 Now that it's running, lets login! Let's run through a checklist to make sure your hardware is setup.
@@ -149,36 +211,6 @@ Here are 2 issues I encountered
     
 ## Instructions - Automated Features
 Let's move on to automating the starting, stopping, updating and backup of our server.
-
-### Automated Start-up
-Included in the **install_guide** folder is a file called **minecraft@.service**. This is a systemd file that is executed upon boot-up of the computer. It's primary job is to call the scripts to backup and update the server and finally start the server.
-
-Copy this file to your system folder(/etc/systemd/system/) using `cp minecraft@.service /etc/systemd/system` in terminal. 
-
-To ensure that it runs on boot-up, run `sudo systemctl enable minecraft@survival` in terminal. **Make sure your server name matches the folder name of your server**
-
-Some basic systemctl commands that will help with troubleshooting are listed here:
- 1. `sudo systemctl start minecraft@survival` will start your server through command line.
- 2. `sudo systemctl status minecraft@survival` will return information regarding the current status of your server. It will report failures if any.
- 3. `sudo systemctl stop minecraft@survival` will shutdown your server.
- 
-**Note: Running the script at this step will fail as the backup and update scripts are not in place.** If you want to test it out anyway, please comment out lines 18 & 21 in the minecraft@.service file. The script will only have start and server shutdown functionality now.
- 
-### Automated Server Backups
-This involves the backup of your server before every bootup. The backup will be placed in a folder called **boot_server_backups** in the /opt/minecraft folder. 
-
-Copy the backup.sh script to your server directory using `cp backup.sh /opt/minecraft/survival`.
-
-`chmod +x backup.sh` will make the script executable allowing to the systemd script to run it.
-
-### Automated Server Update & Backups
-This involves the backup of your server before every update. It will first check for a new version of the server. If there is one, it will back up and then update the server. The backup is placed in a folder called **update_server_backups** in the /opt/minecraft folder.
-
-Copy the update_server.sh script to your server directory using `cp update_server.sh /opt/minecraft/survival`.
-Copy the update_backup.sh script to your server directory using `cp update_backup.sh /opt/minecraft/survival`.
-
-`chmod +x update_server.sh` will make the script executable allowing to the systemd script to run it.
-`chmod +x update_backup.sh` will make the script executable allowing to the systemd script to run it.
 
 **And thats it. Congratulations! You're all done!**
 If you are interested in understanding more about what's going on under the hood, I recommend opening up the scripts. The comments should help you get an idea of the logic.
