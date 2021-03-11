@@ -8,13 +8,14 @@ I have included references to sites I used at the end. Cheers!
 1. Introduction
     1. Coding Concepts Used
     2. Hardware Used
+    3. Instructions
 2. Installation Script 
     1. Libraries required
     2. Setting up the server 
     3. Automation
-3.  systemd script
-4.  Automated Backup Script
-5.  Automated Update Script
+3.  Systemd script
+4.  Backup Script
+5.  Update Script
 6.  Connecting to your server
     1. Server Properties
     2. Possible Issues
@@ -50,7 +51,7 @@ Don't worry if you have no idea about these. I didn't either. I'll try and expla
 
 - json files
 
-    json stands for Javascript Object Notation. It is a popular format to store data structures. It allows for teh storage of a lot of information in a well structured manner to enable ease of access to said information. We will use it to access information on the latest minecraft release versions as well as the url's to download said server versions.
+    json stands for Javascript Object Notation. It is a popular format to store data structures. It allows for the storage of a lot of information in a well structured manner to enable ease of access to said information. We will use it to access information on the latest minecraft release versions as well as the url's to download said server versions.
     
 ### Hardware Used
 I have listed the specs of the laptop used to run the two servers. Mojang already provides a good reference of resources required to run a server [here](https://minecraft.gamepedia.com/Server/Requirements).
@@ -59,29 +60,41 @@ I have listed the specs of the laptop used to run the two servers. Mojang alread
 - 16 GB Ram
 - OS: Ubuntu 20.04
 
+### Instructions 
+You will find an installation script called "install_server.sh".
+Here is the command: `sudo ./install_server.sh "Server_Name"`.
+
+There are two additonal options you can run the command with:
+
+- `sudo ./install_server.sh -h` will print help messages regarding the usage of this script.
+
+- `sudo ./install_server.sh -v "Server_Name"` will run the script in verbose mode. Instead of a simple status bar showing progress, it will show intricate details of whats going on.
+
+Thats all! The remaining portion of this article gives a breakdown of the scripts and what they are doing.
+
 ## Installation Script
-The installation script forms the heart of this project. It installs the necessary libraries, copies the update and backup scripts to appropriate folders, downloads the minecraft server, creates a minecraft user account and implements the systmd scripts. Note: I have assumed the server's name is **"survival"** for this readme file.
+The installation script forms the heart of this project. It installs the necessary libraries, copies the update and backup scripts to appropriate folders, downloads the minecraft server, creates a minecraft user account and implements the systmd scripts.
 
 ### Libraries required
 The following code in the script implements the libraries required to install and run the server and scripts.
 
 ```bash
-apt-get update
+apt update
 apt upgrade
-apt-get install openjdk-8-jdk
+apt install openjdk-8-jdk
 apt install wget screen default-jdk nmap
-apt-get install jq
+apt install jq
 ```
 So let's explain each line.
-`apt-get update` basically fetches a list of updates to various software and libraries that can be downloaded and installed.
+`apt update` basically fetches a list of updates to various software and libraries that can be downloaded and installed.
 
 `apt upgrade` installs said updates.
 
-`apt-get install openjdk-8-jdk` openjdk is an open source java runtime environment required by the server. This command installs it.
+`apt install openjdk-8-jdk` openjdk is an open source java runtime environment required by the server. This command installs it.
 
 `apt install wget screen default-jdk nmap` This will install **screen** which will give us access to the serial console of the server. This will allow us to write commands to the server similar to how we would do it through the in-game chat. **nmap** is a network debug tool that can be used later for debugging.
 
-`apt-get install jq` will install **jq**. To check the latest update version, we will download a json file from Mojang. jq is used to interpret that.
+`apt install jq` will install **jq**. To check the latest update version, we will download a json file from Mojang. jq is used to interpret that.
 
 ### Setting up the server
 This involves two main operations. First we will create a separate user account for your servers. Then we will download and run it for the first time.
@@ -137,13 +150,13 @@ With that done, we now have our server file called "server.jar". Dont worry abou
 Next, let's run your server for the first time. **Spoiler alert: It will not run.** 
 
 ```bash
-java -Xmx2048M -Xms2048M -jar $SERVER_DIR/server.jar nogui
+java -Xmx1024M -Xms1024M -jar $SERVER_DIR/server.jar nogui
 sed -i 's/false/true/g' $SERVER_DIR/eula.txt
 ```
 
 `java -Xmx1024M -Xms1024M -jar server.jar nogui` runs your server. Some points to note:
 
-- `-Xmx1024M -Xms1024M` specify how much RAM to reserve for the server. In this case, 1GB. I recommend adjusting this according to you hardware resources available. e.g. 2048 for 2GB.
+- `-Xmx1024M -Xms1024M` specify how much RAM to reserve for the server. In this case, 1GB. Since this is for the initial server bootup, it doesnt matter. Later on, in the systemd file, you can adjust it according to your hardware specs.
 
 - `nogui` ensures that the GUI does not run, i.e. no graphical application will run in your screen. 
 
@@ -178,9 +191,48 @@ systemctl enable minecraft@$NAME
 
 `chmod +x $SERVER_DIR/scripts/backup.sh` Tells linux that backup is a script that can be executes like a program.
 
-### systemd script
-### Automated Backup Script
-### Automated Update Script
+### Systemd script
+This script is called on bootup. It runs the backup and update scripts and then runs the server. Upon shutdown, it runs commands to shutdown the server safely first.
+
+```Bash
+ExecStartPre=/bin/bash /opt/minecraft/%i/backup.sh
+ExecStartPre=/bin/bash /opt/minecraft/%i/update_server.sh
+ExecStart=/usr/bin/screen -DmS mc-%i /usr/bin/java -Xmx6G -Xms6G -jar server.jar gui
+```
+
+`ExecStartPre=/bin/bash /opt/minecraft/%i/backup.sh` Runs the backup script.
+
+`ExecStartPre=/bin/bash /opt/minecraft/%i/update_server.sh` Runs the server update script.
+
+`ExecStart=/usr/bin/screen -DmS mc-%i /usr/bin/java -Xmx6G -Xms6G -jar server.jar nogui` Boots the server. Note: My implementation allocates 6GB ram. You will have to edit this command based on your hardware requirements. This file can be found in the directory `/etc/systemd/system`. 
+
+Call the following command to edit this file in vim directly: `vim /etc/systemd/system/minecraft@.service` and edit it accordingly. 
+
+```Bash
+ExecStop=/usr/bin/screen -p 0 -S mc-%i -X eval 'stuff "say Shutown request approved. Server is shutting down in 15 seconds..."\015'
+ExecStop=/bin/sleep 15
+ExecStop=/usr/bin/screen -p 0 -S mc-%i -X eval 'stuff "save-all"\015'
+ExecStop=/usr/bin/screen -p 0 -S mc-%i -X eval 'stuff "stop"\015'
+```
+`ExecStop=/usr/bin/screen -p 0 -S mc-%i -X eval 'stuff "say Shutown request approved. Server is shutting down in 15 seconds..."\015'` Prints a messsage in the game that the server is shutting down within 15 seconds to alert any users on the server.
+
+`ExecStop=/bin/sleep 15` Pauses the shutdown process for 15 seconds.
+
+`ExecStop=/usr/bin/screen -p 0 -S mc-%i -X eval 'stuff "save-all"\015'` Calls the command to save any changes on the server since bootup.
+
+`ExecStop=/usr/bin/screen -p 0 -S mc-%i -X eval 'stuff "stop"\015'` Calls the command to shutdown the server.
+
+### Backup Script
+The backup script copies the current server folder, compresses it and places it in a backup directory with the server name. By default this script generates a folder called "boot_server_backup' for every backup made on bootup. With the 'u' option, it creates a folder called "update_server_backup" to be used by the update server script.
+
+The initial section of the script involves creating the backup folder. The core commands to generate the backup are as follows:
+
+`find "${BACKUP_PATH}/${SERVER_FOLDER_NAME}/" -type f -name '*.gz' -delete` Searches for a file of type ".gz" in the server backup directory and deletes it. ".gz" refers to a compressed file which in our case is a copy of the server folder. This is used to delete an older backup before saving a new backup of the server.
+
+`tar -cpzf "${SERVER_FOLDER_NAME}"-$(date +%F-%H-%M).tar.gz  ${SERVER_FOLDER_NAME}` Generates a compressed copy of the current server folder. It appends the current date and time to the name of the server folder when naming this new compressed file. It stores this file in the server backup directory.
+
+### Update Script
+The update script follows similar steps to the install script to check for a new server update. It then calls the backup script with the 'u' option to generate a backup of the server. It then follows similar steps as in the install script to update the server. (Refer to **Downloading the server**)
 
 ### Connecting to your server
 Now that it's running, lets login! Let's run through a checklist to make sure your hardware is setup.
@@ -204,16 +256,13 @@ Thus if you want to connect to one through your minecraft client, type the IP of
 ### Possible Issues
 Here are 2 issues I encountered
 
-1. **Linux Permissions:** At some point during this setup you might encounter a permissions denied message. You may need to become a super user using `sudo su`.
+1. **Linux Permissions:** At some point during this setup you might encounter a permissions denied message. Remember to call the script using `sudo` to gain super user privilges for the script.
 2. **Timeout Issue:** When connecting to my server through my router, I often got a timeout error from the server due to missing packets. After some research I found 2 possible issues.
     1. **Antivirus:** You may have to add minecraft to your antivirus exceptions list
     2. **Router:** I found my router was throttling my connection to my server for some reason. My work around? I enabled my wifi hotspot on my computer and had my server connect to it automatically. This created my laptops personal LAN and it works splendidly.
     
-## Instructions - Automated Features
-Let's move on to automating the starting, stopping, updating and backup of our server.
-
 **And thats it. Congratulations! You're all done!**
-If you are interested in understanding more about what's going on under the hood, I recommend opening up the scripts. The comments should help you get an idea of the logic.
+If you are interested in understanding more about what's going on under the hood, I recommend opening up the scripts. The comments should help you get a better idea of the logic.
 
 ## References
 I am including various repositories, blogs and websites I found very helpful in figuring all this out. You will find a lot of similarities between my methods and theirs.
@@ -227,8 +276,6 @@ I am including various repositories, blogs and websites I found very helpful in 
 - [Using a script to update the Minecraft server.jar](https://www.atpeaz.com/using-a-script-to-update-the-minecraft-server-jar/) by By Ken NG
 
 ## Future Scope
-Many will point out that all this can be done by a single script. To reiterate, the point of this exercise was for me to learn and understand. It is labourious by design. That being said, the next step for me at least is to write a bash script to do all this. I am not sure when I will find time between work and other responsibilities but I hope to have it done within a month. Let's see.
+Currently this server is only accessible through LAN. An avenue I am looking at is using port forwarding to have friends access my server through the internet. Still, no concrete plans there.
 
-Another avenue I am looking at is using port forwarding to have friends access my server through the internet. Still, no concrete plans there.
-
-Thank you so much for checking this out. Any feedback or constructive criticism would be very much appreciated. Thanks!
+Thank you so much for checking this out. Any feedback or constructive criticism would be very much appreciated!
