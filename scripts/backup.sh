@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#Description: Creates a backup of the server in a seperate backup folder. 'u' flag changes backup folder directory for update backups. Else folder directory is for boot backups.
+
 #Checks for options provided
 while getopts 'uh' option
 do
@@ -75,11 +77,15 @@ then
 	mkdir ${SERVER_FOLDER_NAME}
 fi
 
-#Enters server folder in backups directory
-cd ${SERVER_FOLDER_NAME}
-
-#Deletes older backup
+#Searches for and deletes older backup 
 find "${BACKUP_PATH}/${SERVER_FOLDER_NAME}/" -type f -name '*.gz' -delete
 
-#Creates new backup
-tar -cvpzf "${SERVER_FOLDER_NAME}"-$(date +%F-%H-%M).tar.gz --absolute-names ${SERVER_SCRIPT_PATH} > /dev/null
+#Enter server parent folder
+cd ${PARENT_PATH}
+
+#Create new backup of server folder
+tar -cpzf "${SERVER_FOLDER_NAME}"-$(date +%F-%H-%M).tar.gz  ${SERVER_FOLDER_NAME} > /dev/null 
+
+#Move the backup to the server backup folder
+mv *.gz ${BACKUP_PATH}/${SERVER_FOLDER_NAME}
+

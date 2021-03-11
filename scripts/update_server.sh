@@ -1,7 +1,6 @@
 #!/bin/bash
 
-#Reference https://gitlab.com/peaz/minecraft_server_update_script/blob/master/update_server.sh
-# https://www.atpeaz.com/using-a-script-to-update-the-minecraft-server-jar/
+#Description: Checks for the latest server version of minecraft. If a new version is available, creates a backup of the current server, downloads and installs the new server..
 
 #Move to server folder
 cd ".."
@@ -21,11 +20,14 @@ if [ $CURRENT_VER != $VER ]
 then
    
     echo "Running script to create a new update backup"
+    #Path to server folder
+    SERVER_PATH=$( cd "$( dirname "${BASH_SOURCE[0]}")"; pwd -P) 
+
     #Path to server script folder directory
-    server_script_path=$( cd "$( dirname "${BASH_SOURCE[0]}" )" ; pwd -P)
+    SERVER_SCRIPT_PATH=$( cd "$SERVER_PATH/scripts"; pwd -P)
 
     #Calls back up script with updates flag
-    bash $server_script_path/backup.sh -u
+    bash $SERVER_SCRIPT_PATH/backup.sh -u
 
     # Create the jq command to extract the <latest_release_version>.json url
     MANIFEST_JQ=$(echo "jq -r '.versions[] | select(.id == \"$VER\") | .url' version_manifest.json")

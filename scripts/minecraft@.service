@@ -20,7 +20,7 @@ ExecStartPre=/bin/bash /opt/minecraft/%i/backup.sh
 #Runs update script
 ExecStartPre=/bin/bash /opt/minecraft/%i/update_server.sh
 #Starts minecraft server
-ExecStart=/usr/bin/screen -DmS mc-%i /usr/bin/java -Xmx6G -Xms6G -jar server.jar gui
+ExecStart=/usr/bin/screen -DmS mc-%i /usr/bin/java -Xmx6G -Xms6G -jar server.jar nogui
 
 #Triggers shutdown of server
 ExecStop=/usr/bin/screen -p 0 -S mc-%i -X eval 'stuff "say Shutown request approved. Server is shutting down in 15 seconds..."\015'

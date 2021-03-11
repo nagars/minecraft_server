@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#Description: Downloads and installs the latest minecraft server. Creates a seperate minecraft account to install servers for. Installs all required libraries and impplements automatic bootup, backup and update of server through scripts.
+
 #sets flag to exit upon failure of any command
 set -e
 
@@ -64,7 +66,7 @@ fi
 
 echo -ne "Status: 5%[=>                                                ]  \r"	&> $STATUS_OUTPUT
 
-if ! apt-get install openjdk-8-jdk 			-y	&> $GEN_OUTPUT	
+if ! apt install openjdk-8-jdk 			-y	&> $GEN_OUTPUT	
 then
 	echo "Error: Unable to install openjdk"
 	exit 0
@@ -80,7 +82,7 @@ fi
 
 echo -ne "Status: 15%[=======>                                          ]  \r"	&> $STATUS_OUTPUT
 
-if ! apt-get install jq 				-y	&> $GEN_OUTPUT	
+if ! apt install jq 				-y	&> $GEN_OUTPUT	
 then
 	echo "Error: Unable to intall jq"
 	exit 0
@@ -88,7 +90,7 @@ fi
 
 echo -ne "Status: 20%[=========>                                        ]  \r"	&> $STATUS_OUTPUT
 
-if ! apt-get install wget 				-y	&> $GEN_OUTPUT	
+if ! apt install wget 				-y	&> $GEN_OUTPUT	
 then
 	echo "Error: Unable to install wget"
 	exit 0
@@ -182,9 +184,9 @@ echo $VER > current_ver.txt
 #Disabled exit upon error
 set +e 
 
-echo "Note: Initial server bootup. Errors upon initial server bootup are expected and should be ignored"	&> $GEN_OUTPUT 
+echo "Note: Initial server bootup. The 3 errors below are expected upon first time server bootup and should be ignored."	&> $GEN_OUTPUT 
 #Run the server for the first time
-java -Xmx2048M -Xms2048M -jar $SERVER_DIR/server.jar nogui	&> $GEN_OUTPUT	
+java -Xmx1024M -Xms1024M -jar $SERVER_DIR/server.jar nogui	&> $GEN_OUTPUT	
 
 #Enable exit upon error
 set -e
